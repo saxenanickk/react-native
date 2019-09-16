@@ -129,6 +129,14 @@ const APIExamples: Array<RNTesterExample> = [
     module: require('../examples/Animated/AnimatedExample'),
   },
   {
+    key: 'Animation - GratuitousAnimation',
+    module: require('../examples/Animated/AnimatedGratuitousApp/AnExApp'),
+  },
+  {
+    key: 'AppearanceExample',
+    module: require('../examples/Appearance/AppearanceExample'),
+  },
+  {
     key: 'AppStateExample',
     module: require('../examples/AppState/AppStateExample'),
   },
@@ -195,10 +203,6 @@ const APIExamples: Array<RNTesterExample> = [
   {
     key: 'ShareExample',
     module: require('../examples/Share/ShareExample'),
-  },
-  {
-    key: 'TimePickerAndroidExample',
-    module: require('../examples/TimePicker/TimePickerAndroidExample'),
   },
   {
     key: 'TimerExample',

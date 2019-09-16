@@ -16,7 +16,11 @@ import type {
   PropTypeShape,
   SchemaType,
 } from '../../CodegenSchema';
-const {getImports, toSafeJavaString} = require('./JavaHelpers');
+const {
+  getImports,
+  toSafeJavaString,
+  getInterfaceJavaClassName,
+} = require('./JavaHelpers');
 
 // File path -> contents
 type FilesOutput = Map<string, string>;
@@ -84,6 +88,9 @@ function getJavaValueForProp(prop: PropTypeShape, imports): string {
     case 'StringEnumTypeAnnotation':
       addNullable(imports);
       return '@Nullable String value';
+    case 'Int32EnumTypeAnnotation':
+      addNullable(imports);
+      return '@Nullable Integer value';
     default:
       (typeAnnotation: empty);
       throw new Error('Received invalid typeAnnotation');
@@ -190,7 +197,7 @@ module.exports = {
 
       return Object.keys(components).forEach(componentName => {
         const component = components[componentName];
-        const className = `${componentName}ManagerInterface`;
+        const className = getInterfaceJavaClassName(componentName);
         const fileName = `${className}.java`;
 
         const imports = getImports(component);

@@ -432,6 +432,49 @@ namespace facebook {
     };
   } // namespace react
 } // namespace facebook
+@protocol NativeAppearanceSpec <RCTBridgeModule, RCTTurboModule>
+
+- (NSString *)getColorScheme;
+- (void)addListener:(NSString *)eventName;
+- (void)removeListeners:(double)count;
+
+@end
+namespace facebook {
+  namespace react {
+    /**
+     * ObjC++ class for module 'Appearance'
+     */
+
+    class JSI_EXPORT NativeAppearanceSpecJSI : public ObjCTurboModule {
+    public:
+      NativeAppearanceSpecJSI(id<RCTTurboModule> instance, std::shared_ptr<JSCallInvoker> jsInvoker);
+
+    };
+  } // namespace react
+} // namespace facebook
+
+namespace JS {
+  namespace NativeAppearance {
+    struct AppearancePreferences {
+      NSString *colorScheme() const;
+
+      AppearancePreferences(NSDictionary *const v) : _v(v) {}
+    private:
+      NSDictionary *_v;
+    };
+  }
+}
+
+@interface RCTCxxConvert (NativeAppearance_AppearancePreferences)
++ (RCTManagedPointer *)JS_NativeAppearance_AppearancePreferences:(id)json;
+@end
+typedef NS_ENUM(NSInteger, NativeAppearanceColorSchemeName) {
+  NativeAppearanceColorSchemeNameLight = 0,
+  NativeAppearanceColorSchemeNameDark,
+};
+
+folly::Optional<NativeAppearanceColorSchemeName> NSStringToNativeAppearanceColorSchemeName(NSString *value);
+NSString *NativeAppearanceColorSchemeNameToNSString(folly::Optional<NativeAppearanceColorSchemeName> value);
 
 namespace JS {
   namespace NativeAsyncStorage {
@@ -698,7 +741,6 @@ namespace facebook {
 - (void)reload;
 - (void)setHotLoadingEnabled:(BOOL)isHotLoadingEnabled;
 - (void)setIsDebuggingRemotely:(BOOL)isDebuggingRemotelyEnabled;
-- (void)setLiveReloadEnabled:(BOOL)isLiveReloadEnabled;
 - (void)setProfilingEnabled:(BOOL)isProfilingEnabled;
 - (void)toggleElementInspector;
 - (void)setIsShakeToShowDevMenuEnabled:(BOOL)enabled;
@@ -1996,63 +2038,6 @@ namespace facebook {
     };
   } // namespace react
 } // namespace facebook
-
-namespace JS {
-  namespace NativeTimePickerAndroid {
-    struct TimePickerOptions {
-      folly::Optional<double> hour() const;
-      folly::Optional<double> minute() const;
-      folly::Optional<bool> is24Hour() const;
-      NSString *mode() const;
-
-      TimePickerOptions(NSDictionary *const v) : _v(v) {}
-    private:
-      NSDictionary *_v;
-    };
-  }
-}
-
-@interface RCTCxxConvert (NativeTimePickerAndroid_TimePickerOptions)
-+ (RCTManagedPointer *)JS_NativeTimePickerAndroid_TimePickerOptions:(id)json;
-@end
-@protocol NativeTimePickerAndroidSpec <RCTBridgeModule, RCTTurboModule>
-
-- (void)open:(JS::NativeTimePickerAndroid::TimePickerOptions &)options
-     resolve:(RCTPromiseResolveBlock)resolve
-      reject:(RCTPromiseRejectBlock)reject;
-
-@end
-namespace facebook {
-  namespace react {
-    /**
-     * ObjC++ class for module 'TimePickerAndroid'
-     */
-
-    class JSI_EXPORT NativeTimePickerAndroidSpecJSI : public ObjCTurboModule {
-    public:
-      NativeTimePickerAndroidSpecJSI(id<RCTTurboModule> instance, std::shared_ptr<JSCallInvoker> jsInvoker);
-
-    };
-  } // namespace react
-} // namespace facebook
-
-namespace JS {
-  namespace NativeTimePickerAndroid {
-    struct TimePickerResult {
-      NSString *action() const;
-      double hour() const;
-      double minute() const;
-
-      TimePickerResult(NSDictionary *const v) : _v(v) {}
-    private:
-      NSDictionary *_v;
-    };
-  }
-}
-
-@interface RCTCxxConvert (NativeTimePickerAndroid_TimePickerResult)
-+ (RCTManagedPointer *)JS_NativeTimePickerAndroid_TimePickerResult:(id)json;
-@end
 @protocol NativeTimingSpec <RCTBridgeModule, RCTTurboModule>
 
 - (void)createTimer:(double)callbackID
@@ -2553,6 +2538,11 @@ inline JS::NativeAppState::Constants::Builder::Builder(const Input i) : _factory
 inline JS::NativeAppState::Constants::Builder::Builder(Constants i) : _factory(^{
   return i.unsafeRawValue();
 }) {}
+inline NSString *JS::NativeAppearance::AppearancePreferences::colorScheme() const
+{
+  id const p = _v[@"colorScheme"];
+  return RCTBridgingToString(p);
+}
 inline NSString *JS::NativeAsyncStorage::SpecMultiGetCallbackErrorsElement::message() const
 {
   id const p = _v[@"message"];
@@ -3027,41 +3017,6 @@ inline JS::NativeStatusBarManager::Constants::Builder::Builder(const Input i) : 
 inline JS::NativeStatusBarManager::Constants::Builder::Builder(Constants i) : _factory(^{
   return i.unsafeRawValue();
 }) {}
-inline folly::Optional<double> JS::NativeTimePickerAndroid::TimePickerOptions::hour() const
-{
-  id const p = _v[@"hour"];
-  return RCTBridgingToOptionalDouble(p);
-}
-inline folly::Optional<double> JS::NativeTimePickerAndroid::TimePickerOptions::minute() const
-{
-  id const p = _v[@"minute"];
-  return RCTBridgingToOptionalDouble(p);
-}
-inline folly::Optional<bool> JS::NativeTimePickerAndroid::TimePickerOptions::is24Hour() const
-{
-  id const p = _v[@"is24Hour"];
-  return RCTBridgingToOptionalBool(p);
-}
-inline NSString *JS::NativeTimePickerAndroid::TimePickerOptions::mode() const
-{
-  id const p = _v[@"mode"];
-  return RCTBridgingToString(p);
-}
-inline NSString *JS::NativeTimePickerAndroid::TimePickerResult::action() const
-{
-  id const p = _v[@"action"];
-  return RCTBridgingToString(p);
-}
-inline double JS::NativeTimePickerAndroid::TimePickerResult::hour() const
-{
-  id const p = _v[@"hour"];
-  return RCTBridgingToDouble(p);
-}
-inline double JS::NativeTimePickerAndroid::TimePickerResult::minute() const
-{
-  id const p = _v[@"minute"];
-  return RCTBridgingToDouble(p);
-}
 inline JS::NativeToastAndroid::Constants::Builder::Builder(const Input i) : _factory(^{
   NSMutableDictionary *d = [NSMutableDictionary new];
   auto SHORT = i.SHORT.get();

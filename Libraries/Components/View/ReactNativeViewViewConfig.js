@@ -121,7 +121,7 @@ const ReactNativeViewConfig = {
     accessibilityLabel: true,
     accessibilityLiveRegion: true,
     accessibilityRole: true,
-    accessibilityStates: true,
+    accessibilityStates: true, // TODO: Can be removed after next release
     accessibilityState: true,
     accessibilityViewIsModal: true,
     accessible: true,

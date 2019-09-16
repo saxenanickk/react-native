@@ -19,11 +19,6 @@ const ComponentExamples: Array<RNTesterExample> = [
     supportsTVOS: true,
   },
   {
-    key: 'ARTExample',
-    module: require('../examples/ART/ARTExample'),
-    supportsTVOS: true,
-  },
-  {
     key: 'ButtonExample',
     module: require('../examples/Button/ButtonExample'),
     supportsTVOS: true,
@@ -204,6 +199,11 @@ const APIExamples: Array<RNTesterExample> = [
     key: 'AnExApp',
     module: require('../examples/Animated/AnimatedGratuitousApp/AnExApp'),
     supportsTVOS: true,
+  },
+  {
+    key: 'AppearanceExample',
+    module: require('../examples/Appearance/AppearanceExample'),
+    supportsTVOS: false,
   },
   {
     key: 'AppStateExample',

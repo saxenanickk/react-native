@@ -50,7 +50,9 @@ import com.facebook.react.fabric.mounting.mountitems.DispatchStringCommandMountI
 import com.facebook.react.fabric.mounting.mountitems.InsertMountItem;
 import com.facebook.react.fabric.mounting.mountitems.MountItem;
 import com.facebook.react.fabric.mounting.mountitems.PreAllocateViewMountItem;
+import com.facebook.react.fabric.mounting.mountitems.RemoveDeleteMultiMountItem;
 import com.facebook.react.fabric.mounting.mountitems.RemoveMountItem;
+import com.facebook.react.fabric.mounting.mountitems.SendAccessibilityEvent;
 import com.facebook.react.fabric.mounting.mountitems.UpdateEventEmitterMountItem;
 import com.facebook.react.fabric.mounting.mountitems.UpdateLayoutMountItem;
 import com.facebook.react.fabric.mounting.mountitems.UpdateLocalDataMountItem;
@@ -281,6 +283,12 @@ public class FabricUIManager implements UIManager, LifecycleEventListener {
 
   @DoNotStrip
   @SuppressWarnings("unused")
+  private MountItem removeDeleteMultiMountItem(int[] metadata) {
+    return new RemoveDeleteMultiMountItem(metadata);
+  }
+
+  @DoNotStrip
+  @SuppressWarnings("unused")
   private MountItem updateLayoutMountItem(
       int reactTag, int x, int y, int width, int height, int layoutDirection) {
     return new UpdateLayoutMountItem(reactTag, x, y, width, height, layoutDirection);
@@ -469,7 +477,12 @@ public class FabricUIManager implements UIManager, LifecycleEventListener {
     long batchedExecutionStartTime = SystemClock.uptimeMillis();
     for (MountItem mountItem : mountItemsToDispatch) {
       if (DEBUG) {
-        FLog.d(TAG, "dispatchMountItems: Executing mountItem: " + mountItem);
+        // If a MountItem description is split across multiple lines, it's because it's a compound
+        // MountItem. Log each line separately.
+        String[] mountItemLines = mountItem.toString().split("\n");
+        for (String m : mountItemLines) {
+          FLog.d(TAG, "dispatchMountItems: Executing mountItem: " + m);
+        }
       }
       mountItem.execute(mMountingManager);
     }
@@ -563,6 +576,13 @@ public class FabricUIManager implements UIManager, LifecycleEventListener {
       final int reactTag, final String commandId, @Nullable final ReadableArray commandArgs) {
     synchronized (mMountItemsLock) {
       mMountItems.add(new DispatchStringCommandMountItem(reactTag, commandId, commandArgs));
+    }
+  }
+
+  @Override
+  public void sendAccessibilityEvent(int reactTag, int eventType) {
+    synchronized (mMountItemsLock) {
+      mMountItems.add(new SendAccessibilityEvent(reactTag, eventType));
     }
   }
 
