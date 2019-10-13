@@ -123,6 +123,7 @@ const ReactNativeViewConfig = {
     accessibilityRole: true,
     accessibilityStates: true, // TODO: Can be removed after next release
     accessibilityState: true,
+    accessibilityValue: true,
     accessibilityViewIsModal: true,
     accessible: true,
     alignContent: true,
@@ -171,6 +172,7 @@ const ReactNativeViewConfig = {
     height: true,
     hitSlop: {diff: (require('../../Utilities/differ/insetsDiffer'): any)},
     importantForAccessibility: true,
+    isTVSelectable: true,
     justifyContent: true,
     left: true,
     margin: true,
@@ -333,6 +335,7 @@ const ReactNativeViewConfig = {
     transform: {diff: require('../../Utilities/differ/matricesDiffer')},
     translateX: true,
     translateY: true,
+    tvParallaxProperties: true,
     width: true,
     zIndex: true,
   },

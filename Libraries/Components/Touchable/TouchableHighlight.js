@@ -51,7 +51,7 @@ type AndroidProps = $ReadOnly<{|
   nextFocusUp?: ?number,
 |}>;
 
-type Props = $ReadOnly<{|
+export type Props = $ReadOnly<{|
   ...TouchableWithoutFeedbackProps,
   ...IOSProps,
   ...AndroidProps,
@@ -408,6 +408,7 @@ const TouchableHighlight = ((createReactClass({
         accessibilityHint={this.props.accessibilityHint}
         accessibilityRole={this.props.accessibilityRole}
         accessibilityState={this.props.accessibilityState}
+        accessibilityValue={this.props.accessibilityValue}
         accessibilityActions={this.props.accessibilityActions}
         onAccessibilityAction={this.props.onAccessibilityAction}
         style={StyleSheet.compose(

@@ -2800,7 +2800,6 @@ var enableProfilerTimer = true;
 var enableSchedulerTracing = true;
 var enableSuspenseServerRenderer = false;
 
-var warnAboutDeprecatedSetNativeProps = false;
 var enableFlareAPI = false;
 var enableFundamentalAPI = false;
 
@@ -3822,6 +3821,8 @@ var ReactNativeComponent = (function(_React$Component) {
 
   return ReactNativeComponent;
 })(React.Component);
+
+// This type is only used for FlowTests. It shouldn't be imported directly
 
 /**
  * This type keeps ReactNativeFiberHostComponent and NativeMethodsMixin in sync.
@@ -6897,7 +6898,11 @@ function scheduleFibersWithFamiliesRecursively(
         if (staleFamilies.has(family)) {
           needsRemount = true;
         } else if (updatedFamilies.has(family)) {
-          needsRender = true;
+          if (tag === ClassComponent) {
+            needsRemount = true;
+          } else {
+            needsRender = true;
+          }
         }
       }
     }
@@ -17861,6 +17866,7 @@ function commitNestedUnmounts(root, renderPriorityLevel) {
 }
 
 function detachFiber(current$$1) {
+  var alternate = current$$1.alternate;
   // Cut off the return pointers to disconnect it from the tree. Ideally, we
   // should clear the child pointer of the parent alternate to let this
   // get GC:ed but we don't know which for sure which parent is the current
@@ -17871,13 +17877,13 @@ function detachFiber(current$$1) {
   current$$1.memoizedState = null;
   current$$1.updateQueue = null;
   current$$1.dependencies = null;
-  var alternate = current$$1.alternate;
+  current$$1.alternate = null;
+  current$$1.firstEffect = null;
+  current$$1.lastEffect = null;
+  current$$1.pendingProps = null;
+  current$$1.memoizedProps = null;
   if (alternate !== null) {
-    alternate.return = null;
-    alternate.child = null;
-    alternate.memoizedState = null;
-    alternate.updateQueue = null;
-    alternate.dependencies = null;
+    detachFiber(alternate);
   }
 }
 
@@ -22789,18 +22795,6 @@ var NativeMethodsMixin = function(findNodeHandle, findHostInstance) {
         return;
       }
 
-      {
-        if (warnAboutDeprecatedSetNativeProps) {
-          warningWithoutStack$1(
-            false,
-            "Warning: Calling ref.setNativeProps(nativeProps) " +
-              "is deprecated and will be removed in a future release. " +
-              "Use the setNativeProps export from the react-native package instead." +
-              "\n\timport {setNativeProps} from 'react-native';\n\tsetNativeProps(ref, nativeProps);\n"
-          );
-        }
-      }
-
       var nativeTag =
         maybeInstance._nativeTag || maybeInstance.canonical._nativeTag;
       var viewConfig =
@@ -23176,18 +23170,6 @@ var ReactNativeComponent$1 = function(findNodeHandle, findHostInstance) {
         return;
       }
 
-      {
-        if (warnAboutDeprecatedSetNativeProps) {
-          warningWithoutStack$1(
-            false,
-            "Warning: Calling ref.setNativeProps(nativeProps) " +
-              "is deprecated and will be removed in a future release. " +
-              "Use the setNativeProps export from the react-native package instead." +
-              "\n\timport {setNativeProps} from 'react-native';\n\tsetNativeProps(ref, nativeProps);\n"
-          );
-        }
-      }
-
       var nativeTag =
         maybeInstance._nativeTag || maybeInstance.canonical._nativeTag;
       var viewConfig =
@@ -23399,14 +23381,6 @@ var ReactFabric = {
 
   findNodeHandle: findNodeHandle,
 
-  setNativeProps: function(handle, nativeProps) {
-    warningWithoutStack$1(
-      false,
-      "Warning: setNativeProps is not currently supported in Fabric"
-    );
-
-    return;
-  },
   dispatchCommand: function(handle, command, args) {
     var invalid =
       handle._nativeTag == null || handle._internalInstanceHandle == null;

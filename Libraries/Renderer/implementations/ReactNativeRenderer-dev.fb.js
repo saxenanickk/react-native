@@ -2658,7 +2658,6 @@ var debugRenderPhaseSideEffectsForStrictMode = true;
 
 var replayFailedUnitOfWorkWithInvokeGuardedCallback = true;
 var warnAboutDeprecatedLifecycles = true;
-var warnAboutDeprecatedSetNativeProps = true;
 var enableFlareAPI = false;
 var enableFundamentalAPI = false;
 
@@ -3928,9 +3927,13 @@ var ReactNativeFiberHostComponent = (function() {
     } else if (relativeToNativeNode._nativeTag) {
       relativeNode = relativeToNativeNode._nativeTag;
     } else if (
+      /* $FlowFixMe canonical doesn't exist on the node.
+     I think this branch is dead and will remove it in a followup */
       relativeToNativeNode.canonical &&
       relativeToNativeNode.canonical._nativeTag
     ) {
+      /* $FlowFixMe canonical doesn't exist on the node.
+       I think this branch is dead and will remove it in a followup */
       relativeNode = relativeToNativeNode.canonical._nativeTag;
     }
 
@@ -3955,15 +3958,6 @@ var ReactNativeFiberHostComponent = (function() {
     nativeProps
   ) {
     {
-      if (warnAboutDeprecatedSetNativeProps) {
-        warningWithoutStack$1(
-          false,
-          "Warning: Calling ref.setNativeProps(nativeProps) " +
-            "is deprecated and will be removed in a future release. " +
-            "Use the setNativeProps export from the react-native package instead." +
-            "\n\timport {setNativeProps} from 'react-native';\n\tsetNativeProps(ref, nativeProps);\n"
-        );
-      }
       warnForStyleProps(nativeProps, this.viewConfig.validAttributes);
     }
 
@@ -6478,7 +6472,11 @@ function scheduleFibersWithFamiliesRecursively(
         if (staleFamilies.has(family)) {
           needsRemount = true;
         } else if (updatedFamilies.has(family)) {
-          needsRender = true;
+          if (tag === ClassComponent) {
+            needsRemount = true;
+          } else {
+            needsRender = true;
+          }
         }
       }
     }
@@ -17441,6 +17439,7 @@ function commitNestedUnmounts(root, renderPriorityLevel) {
 }
 
 function detachFiber(current$$1) {
+  var alternate = current$$1.alternate;
   // Cut off the return pointers to disconnect it from the tree. Ideally, we
   // should clear the child pointer of the parent alternate to let this
   // get GC:ed but we don't know which for sure which parent is the current
@@ -17451,13 +17450,13 @@ function detachFiber(current$$1) {
   current$$1.memoizedState = null;
   current$$1.updateQueue = null;
   current$$1.dependencies = null;
-  var alternate = current$$1.alternate;
+  current$$1.alternate = null;
+  current$$1.firstEffect = null;
+  current$$1.lastEffect = null;
+  current$$1.pendingProps = null;
+  current$$1.memoizedProps = null;
   if (alternate !== null) {
-    alternate.return = null;
-    alternate.child = null;
-    alternate.memoizedState = null;
-    alternate.updateQueue = null;
-    alternate.dependencies = null;
+    detachFiber(alternate);
   }
 }
 
@@ -22369,18 +22368,6 @@ var NativeMethodsMixin = function(findNodeHandle, findHostInstance) {
         return;
       }
 
-      {
-        if (warnAboutDeprecatedSetNativeProps) {
-          warningWithoutStack$1(
-            false,
-            "Warning: Calling ref.setNativeProps(nativeProps) " +
-              "is deprecated and will be removed in a future release. " +
-              "Use the setNativeProps export from the react-native package instead." +
-              "\n\timport {setNativeProps} from 'react-native';\n\tsetNativeProps(ref, nativeProps);\n"
-          );
-        }
-      }
-
       var nativeTag =
         maybeInstance._nativeTag || maybeInstance.canonical._nativeTag;
       var viewConfig =
@@ -22756,18 +22743,6 @@ var ReactNativeComponent = function(findNodeHandle, findHostInstance) {
         return;
       }
 
-      {
-        if (warnAboutDeprecatedSetNativeProps) {
-          warningWithoutStack$1(
-            false,
-            "Warning: Calling ref.setNativeProps(nativeProps) " +
-              "is deprecated and will be removed in a future release. " +
-              "Use the setNativeProps export from the react-native package instead." +
-              "\n\timport {setNativeProps} from 'react-native';\n\tsetNativeProps(ref, nativeProps);\n"
-          );
-        }
-      }
-
       var nativeTag =
         maybeInstance._nativeTag || maybeInstance.canonical._nativeTag;
       var viewConfig =
@@ -22902,36 +22877,6 @@ var getInspectorDataForViewTag = void 0;
   };
 }
 
-// Module provided by RN:
-function setNativeProps(handle, nativeProps) {
-  if (handle._nativeTag == null) {
-    !(handle._nativeTag != null)
-      ? warningWithoutStack$1(
-          false,
-          "setNativeProps was called with a ref that isn't a " +
-            "native component. Use React.forwardRef to get access to the underlying native component"
-        )
-      : void 0;
-    return;
-  }
-
-  {
-    warnForStyleProps(nativeProps, handle.viewConfig.validAttributes);
-  }
-
-  var updatePayload = create(nativeProps, handle.viewConfig.validAttributes);
-  // Avoid the overhead of bridge calls if there's no update.
-  // This is an expensive no-op for Android, and causes an unnecessary
-  // view invalidation for certain components (eg RCTTextInput) on iOS.
-  if (updatePayload != null) {
-    ReactNativePrivateInterface.UIManager.updateView(
-      handle._nativeTag,
-      handle.viewConfig.uiViewClassName,
-      updatePayload
-    );
-  }
-}
-
 // TODO: direct imports like some-package/src/* are bad. Fix me.
 // Module provided by RN:
 var ReactCurrentOwner = ReactSharedInternals.ReactCurrentOwner;
@@ -23026,9 +22971,6 @@ var ReactNativeRenderer = {
       args
     );
   },
-
-  setNativeProps: setNativeProps,
-
   render: function(element, containerTag, callback) {
     var root = roots.get(containerTag);
 

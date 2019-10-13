@@ -10,7 +10,6 @@
 'use strict';
 
 const DeprecatedTextInputPropTypes = require('../../DeprecatedPropTypes/DeprecatedTextInputPropTypes');
-const DocumentSelectionState = require('../../vendor/document/selection/DocumentSelectionState');
 const NativeMethodsMixin = require('../../Renderer/shims/NativeMethodsMixin');
 const Platform = require('../../Utilities/Platform');
 const React = require('react');
@@ -32,6 +31,7 @@ import type {ColorValue} from '../../StyleSheet/StyleSheetTypes';
 import type {ViewProps} from '../View/ViewPropTypes';
 import type {SyntheticEvent, ScrollEvent} from '../../Types/CoreEventTypes';
 import type {PressEvent} from '../../Types/CoreEventTypes';
+import type {HostComponent} from '../../Renderer/shims/ReactNativeTypes';
 
 let AndroidTextInput;
 let RCTMultilineTextInputView;
@@ -221,23 +221,6 @@ type IOSProps = $ReadOnly<{|
   enablesReturnKeyAutomatically?: ?boolean,
 
   /**
-   * An instance of `DocumentSelectionState`, this is some state that is responsible for
-   * maintaining selection information for a document.
-   *
-   * Some functionality that can be performed with this instance is:
-   *
-   * - `blur()`
-   * - `focus()`
-   * - `update()`
-   *
-   * > You can reference `DocumentSelectionState` in
-   * > [`vendor/document/selection/DocumentSelectionState.js`](https://github.com/facebook/react-native/blob/master/Libraries/vendor/document/selection/DocumentSelectionState.js)
-   *
-   * @platform ios
-   */
-  selectionState?: ?DocumentSelectionState,
-
-  /**
    * When the clear button should appear on the right side of the text view.
    * This property is supported only for single-line TextInput component.
    * @platform ios
@@ -409,7 +392,7 @@ type AndroidProps = $ReadOnly<{|
   showSoftInputOnFocus?: ?boolean,
 |}>;
 
-type Props = $ReadOnly<{|
+export type Props = $ReadOnly<{|
   ...$Diff<ViewProps, $ReadOnly<{|style: ?ViewStyleProp|}>>,
   ...IOSProps,
   ...AndroidProps,
@@ -904,6 +887,10 @@ const TextInput = createReactClass({
     this._inputRef = ref;
   },
 
+  getNativeRef: function(): ?React.ElementRef<HostComponent<mixed>> {
+    return this._inputRef;
+  },
+
   _renderIOSLegacy: function() {
     let textContainer;
 
@@ -1110,10 +1097,6 @@ const TextInput = createReactClass({
     if (this.props.onFocus) {
       this.props.onFocus(event);
     }
-
-    if (this.props.selectionState) {
-      this.props.selectionState.focus();
-    }
   },
 
   _onPress: function(event: PressEvent) {
@@ -1126,7 +1109,7 @@ const TextInput = createReactClass({
     // Make sure to fire the mostRecentEventCount first so it is already set on
     // native when the text value is set.
     if (this._inputRef && this._inputRef.setNativeProps) {
-      ReactNative.setNativeProps(this._inputRef, {
+      this._inputRef.setNativeProps({
         mostRecentEventCount: event.nativeEvent.eventCount,
       });
     }
@@ -1156,7 +1139,7 @@ const TextInput = createReactClass({
 
     this._lastNativeSelection = event.nativeEvent.selection;
 
-    if (this.props.selection || this.props.selectionState) {
+    if (this.props.selection) {
       this.forceUpdate();
     }
   },
@@ -1191,11 +1174,7 @@ const TextInput = createReactClass({
       this._inputRef &&
       this._inputRef.setNativeProps
     ) {
-      ReactNative.setNativeProps(this._inputRef, nativeProps);
-    }
-
-    if (this.props.selectionState && selection) {
-      this.props.selectionState.update(selection.start, selection.end);
+      this._inputRef.setNativeProps(nativeProps);
     }
   },
 
@@ -1205,10 +1184,6 @@ const TextInput = createReactClass({
     this.blur();
     if (this.props.onBlur) {
       this.props.onBlur(event);
-    }
-
-    if (this.props.selectionState) {
-      this.props.selectionState.blur();
     }
   },
 
@@ -1223,6 +1198,8 @@ const TextInput = createReactClass({
 
 class InternalTextInputType extends ReactNative.NativeComponent<Props> {
   clear() {}
+
+  getNativeRef(): ?React.ElementRef<HostComponent<mixed>> {}
 
   // $FlowFixMe
   isFocused(): boolean {}
